@@ -1,3 +1,3 @@
 package com.example.listalumnos
 
-data class Alumno(val nombre: String, val cuenta: String, val correo: String, val imagen: String)
+data class Alumno(var nombre: String, var cuenta: String, var correo: String, var imagen: String)
