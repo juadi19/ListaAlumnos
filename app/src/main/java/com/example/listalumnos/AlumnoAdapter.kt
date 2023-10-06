@@ -10,11 +10,11 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
-class AlumnoAdapter(private val context: Context, private val listAlumno: List<Alumno>):RecyclerView.Adapter<AlumnoAdapter.ViewHolder>() {
+class AlumnoAdapter(private val context: Context, private val listAlumno: List<Alumno>, private var optionsMenuClickListener : ClickListener) : RecyclerView.Adapter<AlumnoAdapter.ViewHolder>() {
 
     private var clickListener: ClickListener? = null
     interface ClickListener {
-        fun onItemClick(view: View, position: Int)
+        fun onItemClick(position: Int)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -56,7 +56,7 @@ class AlumnoAdapter(private val context: Context, private val listAlumno: List<A
         }
 
         override fun onClick(itView: View){
-            clickListener?.onItemClick(itView, adapterPosition)
+            clickListener?.onItemClick( adapterPosition)
         }
     }
 }

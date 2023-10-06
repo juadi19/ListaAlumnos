@@ -13,6 +13,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var adapter: AlumnoAdapter
     private val data = ArrayList<Alumno>()
+    private lateinit var rvAdapter: AlumnoAdapter
+
+
+    val dbalumnos = DBHelperAlumno(this)
+    val db = dbalumnos.writableDatabase
 
     companion object {
         private const val REQUEST_CODE_NEW_ALUMNO = 1
@@ -25,16 +30,12 @@ class MainActivity : AppCompatActivity() {
 
         binding.recyclerview.layoutManager = LinearLayoutManager(this)
 
-        // ArrayList of class Alumno
-        data.add(Alumno("José Nabor", "20102345", "jmorfin@ucol.mx", "https://imagenpng.com/wp-content/uploads/2017/02/pokemon-hulu-pikach.jpg"))
-        data.add(Alumno("Luis Antonio", "20112345", "jmorfin@ucol.mx", "https://i.pinimg.com/236x/e0/b8/3e/e0b83e84afe193922892917ddea28109.jpg"))
-        data.add(Alumno("Juan Pedro", "20122345", "jmorfin@ucol.mx", "https://i.pinimg.com/736x/9f/6e/fa/9f6efa277ddcc1e8cfd059f2c560ee53--clipart-gratis-vector-clipart.jpg"))
+        cargarDatosDesdeSQLite()
 
-        adapter = AlumnoAdapter(this, data)
         binding.recyclerview.adapter = adapter
 
         adapter.setOnItemClickListener(object: AlumnoAdapter.ClickListener {
-            override fun onItemClick(view: View, position: Int) {
+            override fun onItemClick(position: Int) {
                 itemOptionsMenu(position)
             }
         })
@@ -43,6 +44,34 @@ class MainActivity : AppCompatActivity() {
             val intento1 = Intent(this, MainActivityNuevo::class.java)
             startActivityForResult(intento1, REQUEST_CODE_NEW_ALUMNO)
         }
+    }
+
+    private fun cargarDatosDesdeSQLite() {
+        val cursor = db.rawQuery("SELECT * FROM alumnos", null)
+        if (cursor.moveToFirst()) {
+            do {
+                val nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre"))
+                val cuenta = cursor.getString(cursor.getColumnIndexOrThrow("nocuenta"))
+                val correo = cursor.getString(cursor.getColumnIndexOrThrow("email"))
+                val imagen = cursor.getString(cursor.getColumnIndexOrThrow("imagen"))
+
+                val alumno = Alumno(nombre, cuenta, correo, imagen)
+                data.add(Alumno("${nombre}", "${cuenta}", "${correo}", "${imagen}"))
+            } while (cursor.moveToNext())
+        }
+        db.close()
+        cursor.close()
+
+        binding.recyclerview.layoutManager = LinearLayoutManager(this)
+
+        rvAdapter = AlumnoAdapter(this, data, object : AlumnoAdapter.ClickListener {
+            override fun onItemClick(position: Int) {
+                itemOptionsMenu(position)
+            }
+        })
+
+        binding.recyclerview.adapter = rvAdapter
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -64,7 +93,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun itemOptionsMenu(position: Int) {
         val viewHolder = binding.recyclerview.findViewHolderForAdapterPosition(position)
