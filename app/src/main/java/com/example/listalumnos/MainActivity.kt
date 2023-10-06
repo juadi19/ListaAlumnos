@@ -6,6 +6,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.PopupMenu
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.get
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.listalumnos.databinding.ActivityMainBinding
@@ -110,10 +112,47 @@ class MainActivity : AppCompatActivity() {
             override fun onMenuItemClick(item: MenuItem?): Boolean {
                 when(item?.itemId){
                     R.id.borrar -> {
-                        val tmpAlum = data[position]
-                        data.remove(tmpAlum)
-                        rvAdapter.notifyDataSetChanged()
+
+                        val nombre = data[position].nombre
+                        val dbalumnos = DBHelperAlumno(this@MainActivity)
+                        val db = dbalumnos.readableDatabase
+                        val cursor = db.rawQuery("SELECT * FROM alumnos WHERE nombre='${nombre}'", null)
+                        if (cursor.moveToFirst()) {
+                            idAlumno = cursor.getString(0).toInt()
+                        }
+
+                        cursor.close()
+                        db.close()
+
+//                        val tmpAlum = data[position]
+//                        data.remove(tmpAlum)
+//                        rvAdapter.notifyDataSetChanged()
+
+                        val dialog = AlertDialog.Builder(this@MainActivity)
+                            .setTitle("Borrar resgistro")
+                            .setMessage("¿Estas seguro que deseas eliminar el registro?")
+                            .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+                                Toast.makeText(this@MainActivity, "Presionaste cancelar", Toast.LENGTH_SHORT).show()
+                                dialog.dismiss()
+                            }
+                            .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                                //Toast.makeText(this@MainActivity,"Presionaste OK",Toast.LENGTH_SHORT).show()
+
+                                val db = dbalumnos.writableDatabase
+
+                                db.delete("alumnos","id=$idAlumno",null)
+                                Toast.makeText(this@MainActivity,"Registro eliminado",Toast.LENGTH_SHORT).show()
+                                db.close()
+                                dbalumnos.close()
+                                dialog.dismiss()
+                                recreate()
+                            }
+                            .setCancelable(false)
+                            .create()
+
+                        dialog.show()
                         return true
+
                     }
                     R.id.editar ->{
                         val nombre = data[position].nombre
